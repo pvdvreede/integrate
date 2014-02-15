@@ -7,7 +7,7 @@ import (
 )
 
 func TestMessage(t *testing.T) {
-	context := &Context{}
+	context := Context{}
 	data, _ := io.Pipe()
 	message := NewMessage(data, context)
 
@@ -30,6 +30,14 @@ func TestMessage(t *testing.T) {
 	Convey("String", t, func() {
 		Convey("Returns the Id", func() {
 			So(message.String(), ShouldEqual, message.Id)
+		})
+	})
+
+	Convey("AddContext", t, func() {
+		message.AddContext("key", "value")
+
+		Convey("Adds to the context property", func() {
+			So(message.Context["key"], ShouldEqual, "value")
 		})
 	})
 }
