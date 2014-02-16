@@ -5,6 +5,7 @@ type Server struct {
 	name      string
 	logger    Logger
 	storage   Storage
+	handlers  []Handler
 	commsChan chan *Message
 	killChan  chan bool
 }
@@ -19,8 +20,24 @@ func (s *Server) Run() (chan *Message, error) {
 	return s.commsChan, nil
 }
 
+// Add handlers that will be run for each message.
+// The handlers are run in order, serially.
+func (s *Server) AddHandlers(handlers ...Handler) {
+	for _, h := range handlers {
+		s.handlers = append(s.handlers, h)
+	}
+}
+
 func (s *Server) listenAndServe() {
 
+}
+
+func (s *Server) processMessage(incoming *Message) {
+	for _, h := range s.handlers {
+		if h.ShouldAction(incoming, s.logger) {
+			h.Action(incoming, s.logger)
+		}
+	}
 }
 
 // Create a new server instance with user's choice for logging and storage.

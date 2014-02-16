@@ -31,3 +31,24 @@ func (n *NoOpHandler) ShouldAction(m *Message, logger Logger) bool {
 func (n *NoOpHandler) Action(m *Message, logger Logger) (*Message, error) {
 	return NewMessage(m.Data, m.Context), nil
 }
+
+// Handler that counts when its methods are called. Used for testing execution.
+type ProbeHandler struct {
+	SetShouldAction       bool
+	ShouldActionCallCount int
+	ActionCallCount       int
+}
+
+// Will return what is set as SetShouldAction as well as count the call
+func (n *ProbeHandler) ShouldAction(m *Message, logger Logger) bool {
+	n.ShouldActionCallCount += 1
+	return n.SetShouldAction
+}
+
+// Will always return a new Message pointer with the old data and context and
+// always return nil for the error; so it will never fail.
+// Also counts the call for later review.
+func (n *ProbeHandler) Action(m *Message, logger Logger) (*Message, error) {
+	n.ActionCallCount += 1
+	return NewMessage(m.Data, m.Context), nil
+}
