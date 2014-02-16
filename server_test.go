@@ -33,6 +33,7 @@ func TestServer(t *testing.T) {
 		storage := &NoOpStorage{}
 		s := NewServer("test", logger, storage)
 		comms, err := s.Run()
+		s.Stop()
 
 		Convey("Returns a chan of Message pointers", func() {
 			So(comms, ShouldHaveSameTypeAs, make(chan *Message))

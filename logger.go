@@ -33,6 +33,7 @@ func (n *NoOpLogger) Critical(format string, args ...interface{}) {}
 
 // This is a logger that puts the log strings in slices. Good for testing
 // that things are being logged.
+// TODO: Make this thread safe with sync package.
 type MemoryLogger struct {
 	Debugs    []string
 	Notices   []string
