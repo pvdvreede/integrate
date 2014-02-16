@@ -55,11 +55,17 @@ func (s *Server) listenAndServe() {
 }
 
 func (s *Server) processMessage(incoming *Message) {
+	workingMessage := incoming
+	s.storage.StartProcess(workingMessage)
 	for _, h := range s.handlers {
-		if h.ShouldAction(incoming, s.logger) {
-			h.Action(incoming, s.logger)
+		if !s.storage.HasActioned(incoming, h) && h.ShouldAction(incoming, s.logger) {
+			s.storage.Store(workingMessage, h, "pre-action")
+			currentMessage, _ := h.Action(workingMessage, s.logger)
+			workingMessage = currentMessage
+			s.storage.Store(workingMessage, h, "post-action")
 		}
 	}
+	s.storage.FinishProcess(workingMessage)
 }
 
 // Create a new server instance with user's choice for logging and storage.

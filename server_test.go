@@ -9,7 +9,7 @@ func TestServer(t *testing.T) {
 
 	Convey("NewServer", t, func() {
 		logger := &NoOpLogger{}
-		storage := &NoOpStorage{}
+		storage := &ProbeStorage{}
 		s := NewServer("test", logger, storage)
 
 		Convey("Returns a pointer to a server instance", func() {
@@ -30,7 +30,7 @@ func TestServer(t *testing.T) {
 
 	Convey("Run", t, func() {
 		logger := &NoOpLogger{}
-		storage := &NoOpStorage{}
+		storage := &ProbeStorage{}
 		s := NewServer("test", logger, storage)
 		comms, err := s.Run()
 		s.Stop()
@@ -46,7 +46,7 @@ func TestServer(t *testing.T) {
 
 	Convey("processMessage", t, func() {
 		logger := &NoOpLogger{}
-		storage := &NoOpStorage{}
+		storage := &ProbeStorage{}
 		s := NewServer("test", logger, storage)
 		ph1 := &ProbeHandler{SetShouldAction: true}
 		ph2 := &ProbeHandler{SetShouldAction: false}
@@ -67,6 +67,20 @@ func TestServer(t *testing.T) {
 			So(ph3.ShouldActionCallCount, ShouldEqual, 1)
 		})
 
-		Convey("Calls HasActioned on storage for every handler", nil)
+		Convey("Calls HasActioned on storage for every handler", func() {
+			So(storage.HasActionedCallCount, ShouldEqual, 3)
+		})
+
+		Convey("Call StartProcess on storage", func() {
+			So(storage.StartProcessCallCount, ShouldEqual, 1)
+		})
+
+		Convey("Call FinishProcess on storage", func() {
+			So(storage.FinishProcessCallCount, ShouldEqual, 1)
+		})
+
+		Convey("Call Store twice on every actioned handler", func() {
+			So(storage.StoreCallCount, ShouldEqual, 4)
+		})
 	})
 }

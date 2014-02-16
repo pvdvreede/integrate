@@ -26,31 +26,38 @@ type Storage interface {
 	Store(m *Message, h Handler, event string) error
 }
 
-// A storage that does nothing. It should be used for testing or demoing, when
-// persistent storage or process/message data is not needed. You can tell the
-// storage if you want to return true or not for HasActioned with the property
-// SetHasActioned.
-type NoOpStorage struct {
-	SetHasActioned bool
+// Used to probe which methods have been called. Main use is for testing.
+type ProbeStorage struct {
+	HasActionedCallCount   int
+	StartProcessCallCount  int
+	FinishProcessCallCount int
+	StoreCallCount         int
+	SetHasActioned         bool
+	Messages               []*Message
 }
 
 // Will return the value of the property SetHasActioned. This allows us to test
 // for different scenarios.
-func (s *NoOpStorage) HasActioned(m *Message, h Handler) bool {
+func (s *ProbeStorage) HasActioned(m *Message, h Handler) bool {
+	s.HasActionedCallCount += 1
 	return s.SetHasActioned
 }
 
 // a NoOp that always returns NO error.
-func (s *NoOpStorage) StartProcess(m *Message) error {
+func (s *ProbeStorage) StartProcess(m *Message) error {
+	s.StartProcessCallCount += 1
 	return nil
 }
 
 // a NoOp that always returns NO error.
-func (s *NoOpStorage) FinishProcess(m *Message) error {
+func (s *ProbeStorage) FinishProcess(m *Message) error {
+	s.FinishProcessCallCount += 1
 	return nil
 }
 
 // a NoOp that always returns NO error.
-func (s *NoOpStorage) Store(m *Message, h Handler, event string) error {
+func (s *ProbeStorage) Store(m *Message, h Handler, event string) error {
+	s.StoreCallCount += 1
+	s.Messages = append(s.Messages, m)
 	return nil
 }
