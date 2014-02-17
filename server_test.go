@@ -89,5 +89,13 @@ func TestServer(t *testing.T) {
 			So(storage.Messages[2].Id, ShouldEqual, storage.Messages[1].Id)
 			So(storage.Messages[3].Id, ShouldNotEqual, storage.Messages[2].Id)
 		})
+
+		Convey("Keeps the same transaction Id for each message", func() {
+			transactionId := message.TransactionId
+			So(storage.Messages[0].TransactionId, ShouldEqual, transactionId)
+			So(storage.Messages[1].TransactionId, ShouldEqual, transactionId)
+			So(storage.Messages[2].TransactionId, ShouldEqual, transactionId)
+			So(storage.Messages[3].TransactionId, ShouldEqual, transactionId)
+		})
 	})
 }
