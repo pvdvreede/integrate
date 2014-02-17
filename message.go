@@ -50,6 +50,5 @@ func NewMessage(data io.Reader, context Context) *Message {
 }
 
 func generateMessageId() string {
-	guid := uuid.NewRandom()
-	return string(guid)
+	return uuid.New()
 }
