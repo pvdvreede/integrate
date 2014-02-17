@@ -82,5 +82,12 @@ func TestServer(t *testing.T) {
 		Convey("Call Store twice on every actioned handler", func() {
 			So(storage.StoreCallCount, ShouldEqual, 4)
 		})
+
+		Convey("Store a new message on every post action Store call", func() {
+			So(storage.Messages[0].Id, ShouldEqual, message.Id)
+			So(storage.Messages[1].Id, ShouldNotEqual, message.Id)
+			So(storage.Messages[2].Id, ShouldEqual, storage.Messages[1].Id)
+			So(storage.Messages[3].Id, ShouldNotEqual, storage.Messages[2].Id)
+		})
 	})
 }

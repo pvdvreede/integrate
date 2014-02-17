@@ -50,5 +50,5 @@ func (n *ProbeHandler) ShouldAction(m *Message, logger Logger) bool {
 // Also counts the call for later review.
 func (n *ProbeHandler) Action(m *Message, logger Logger) (*Message, error) {
 	n.ActionCallCount += 1
-	return NewMessage(m.Data, m.Context), nil
+	return m.Copy(), nil
 }
