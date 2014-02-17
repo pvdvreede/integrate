@@ -18,6 +18,11 @@ func TestMessage(t *testing.T) {
 			So(len(message.Id), ShouldEqual, 16)
 		})
 
+		Convey("Set a unique transactionId", func() {
+			So(message.TransactionId, ShouldNotBeNil)
+			So(len(message.TransactionId), ShouldEqual, 16)
+		})
+
 		Convey("Set the data attribute", func() {
 			So(message.Data, ShouldEqual, data)
 		})
@@ -38,6 +43,35 @@ func TestMessage(t *testing.T) {
 
 		Convey("Adds to the context property", func() {
 			So(message.Context["key"], ShouldEqual, "value")
+		})
+	})
+
+	Convey("Copy", t, func() {
+		newMessage := message.Copy()
+
+		Convey("Returns a new message", func() {
+			So(newMessage, ShouldNotEqual, message)
+		})
+
+		Convey("Has a new Id set", func() {
+			So(newMessage.Id, ShouldNotBeNil)
+			So(len(newMessage.Id), ShouldEqual, 16)
+		})
+
+		Convey("Has the correct ParentId set", func() {
+			So(newMessage.ParentId, ShouldEqual, message.Id)
+		})
+
+		Convey("Has the correct TransactionId set", func() {
+			So(newMessage.TransactionId, ShouldEqual, message.TransactionId)
+		})
+
+		Convey("Copies the data", func() {
+			So(newMessage.Data, ShouldEqual, message.Data)
+		})
+
+		Convey("Copies the context", func() {
+			So(newMessage.Context, ShouldEqual, message.Context)
 		})
 	})
 }
