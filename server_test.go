@@ -1,8 +1,12 @@
 package integrate
 
 import (
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
+	"strconv"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestServer(t *testing.T) {
@@ -98,4 +102,75 @@ func TestServer(t *testing.T) {
 			So(storage.Messages[3].TransactionId, ShouldEqual, transactionId)
 		})
 	})
+}
+
+type ChanCallbackHandler struct {
+	callbackChan chan bool
+}
+
+func (c *ChanCallbackHandler) ShouldAction(m *Message, logger Logger) bool {
+	return true
+}
+
+func (c *ChanCallbackHandler) Action(m *Message, logger Logger) (*Message, error) {
+	// simulate work
+	time.Sleep(300 * time.Millisecond)
+
+	// tell the benchmark I have finished
+	c.callbackChan <- true
+	return nil, nil
+}
+
+func BenchmarkServerConcurrent(b *testing.B) {
+	var wg sync.WaitGroup
+	wg.Add(b.N)
+	callbackChan := make(chan bool, b.N)
+	logger := &NoOpLogger{}
+	storage := &ProbeStorage{}
+	server := NewServer("benchmark", logger, storage)
+
+	server.AddHandlers(&NoOpHandler{})
+	server.AddHandlers(&ChanCallbackHandler{callbackChan})
+	fmt.Println("Run " + strconv.Itoa(b.N) + " times...")
+	comms, _ := server.Run()
+
+	go func(cbChan chan bool) {
+		for c := range cbChan {
+			if c {
+				wg.Done()
+			}
+		}
+	}(callbackChan)
+
+	for n := 0; n < b.N; n++ {
+		m := &Message{}
+		comms <- m
+	}
+
+	wg.Wait()
+	close(callbackChan)
+
+	server.Stop()
+}
+
+func BenchmarkServerSynchronous(b *testing.B) {
+	callbackChan := make(chan bool)
+	logger := &NoOpLogger{}
+	storage := &ProbeStorage{}
+	server := NewServer("benchmark", logger, storage)
+
+	server.AddHandlers(&NoOpHandler{})
+	server.AddHandlers(&ChanCallbackHandler{callbackChan})
+	fmt.Println("Run " + strconv.Itoa(b.N) + " times...")
+	comms, _ := server.Run()
+
+	for n := 0; n < b.N; n++ {
+		m := &Message{}
+		comms <- m
+		<-callbackChan
+	}
+
+	close(callbackChan)
+
+	server.Stop()
 }
